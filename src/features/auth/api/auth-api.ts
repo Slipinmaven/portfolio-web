@@ -1,5 +1,6 @@
 import { getApiErrorMessage } from "@/lib/api/api-errors";
-import { API_BASE_URL } from "@/lib/api/api-url";
+
+export const AUTH_API_BASE_PATH = "/api/v1/auth";
 
 export type LoginPayload = {
   email: string;
@@ -56,7 +57,7 @@ async function readLoginResult(
 export async function login(payload: LoginPayload): Promise<LoginResult> {
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+    response = await fetch(`${AUTH_API_BASE_PATH}/login`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -90,7 +91,7 @@ async function requestSessionRefresh(): Promise<LoginResult | null> {
     SESSION_REFRESH_TIMEOUT_MS,
   );
   try {
-    response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+    response = await fetch(`${AUTH_API_BASE_PATH}/refresh`, {
       method: "POST",
       credentials: "include",
       signal: controller.signal,

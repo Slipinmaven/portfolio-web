@@ -72,6 +72,10 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
 ```
 
 Add the exact frontend origin to backend `CORS_ORIGINS`.
+Login, refresh, and logout use a same-origin Next.js rewrite to the backend so
+the backend's HttpOnly refresh cookie remains first-party in the browser. The
+rewrite target uses `NEXT_PUBLIC_API_BASE_URL` (or `http://localhost:8001` for
+local development).
 
 ## Checks
 
