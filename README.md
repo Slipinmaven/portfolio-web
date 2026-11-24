@@ -1,36 +1,150 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio frontend
 
-## Getting Started
+Next.js App Router frontend for the public portfolio and protected
+admin/editor workspace.
 
-First, run the development server:
+The companion FastAPI backend is maintained in the
+[portfolio-backend repository](https://github.com/Slipinmaven/portfolio-backend).
 
-```bash
+## Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- Tiptap
+- Font Awesome free brand SVGs
+
+## Public routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Portfolio home or published CMS Home page |
+| `/projects` | Published project index |
+| `/projects/{slug}` | Published project detail |
+| `/articles` | Published articles |
+| `/articles/{slug}` | Published article |
+| `/notes` | Published notes |
+| `/notes/{slug}` | Published note |
+| `/resources` | Published resources |
+| `/resources/{resourceId}` | Published resource detail |
+| `/categories/{slug}` | Published category content |
+| `/{slug}` | Published CMS page |
+| `/contact` | Contact system page |
+
+## Admin routes
+
+| Route | Purpose |
+| --- | --- |
+| `/admin/login` | Sign-in |
+| `/admin` | Workspace overview |
+| `/admin/projects` | Project management |
+| `/admin/posts` | Article and note management |
+| `/admin/pages` | CMS page and revision management |
+| `/admin/media` | Media library |
+| `/admin/resources` | Resource management |
+| `/admin/categories` | Category management |
+| `/admin/tags` | Tag management |
+| `/admin/navigation` | Header and footer navigation |
+| `/admin/settings` | Profile and public contact settings |
+
+## Setup
+
+Start the API by following the setup instructions in the
+[backend repository](https://github.com/Slipinmaven/portfolio-backend). It
+should be reachable at `http://localhost:8001`, and its `CORS_ORIGINS` must
+allow `http://localhost:3000`.
+
+From the frontend repository root, install dependencies and start the app:
+
+```powershell
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. The API defaults to
+`http://localhost:8001`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Override the API origin when required:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```dotenv
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
+```
 
-## Learn More
+Add the exact frontend origin to backend `CORS_ORIGINS`.
 
-To learn more about Next.js, take a look at the following resources:
+## Checks
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```powershell
+npm run lint
+npm run build
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The production build fetches public API data while prerendering pages, so the
+API and its required data must be available when running `npm run build`.
 
-## Deploy on Vercel
+There is currently no frontend test script in `package.json`. UI changes should
+be validated in mobile and desktop browser viewports until automated browser
+tests are added.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+src/
+├── app/
+│   ├── (portfolio)/       Public routes
+│   ├── (dashboard)/       Protected admin and editor routes
+│   └── (auth)/            Login routes
+├── features/
+│   ├── auth/
+│   ├── admin/
+│   ├── portfolio/
+│   ├── projects/
+│   ├── posts/
+│   ├── pages/
+│   ├── media/
+│   ├── resources/
+│   ├── navigation/
+│   ├── taxonomy/
+│   └── site-settings/
+└── lib/
+```
+
+Route files should remain thin. Feature components, browser state, API
+integration, types, and domain behavior belong in `src/features/<feature>/`.
+
+## Authentication
+
+Access JWTs are kept in memory. Refresh credentials use backend HttpOnly
+cookies. Protected API calls use the shared authenticated request helper and
+the admin session guard.
+
+Frontend checks improve navigation and user experience but do not grant API
+access. Backend authorization remains mandatory.
+
+## Responsive conventions
+
+- Mobile uses a fixed bottom navigation bar and "More" panel.
+- Desktop uses the sidebar and workspace header.
+- Mobile content uses one-column layouts.
+- Desktop management lists use tables where appropriate.
+- Mobile lists use cards or compact stacked rows.
+- Controls provide visible focus and touch-sized targets.
+- Motion respects `prefers-reduced-motion`.
+
+## Rich text
+
+The post and page editors use Tiptap and store Markdown. Supported operations
+include headings, emphasis, alignment, lists, quotes, code blocks, dividers,
+links, inline media, and downloadable document links.
+
+## Production
+
+```powershell
+npm run build
+npm run start
+```
+
+Configure `NEXT_PUBLIC_API_BASE_URL` for the deployment environment and ensure
+the API origin is reachable from the selected frontend deployment topology.
