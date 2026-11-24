@@ -208,7 +208,8 @@ export function NavigationManagerPage() {
         project_id: item.link_type === "PROJECT" ? item.project_id : null,
         post_id: item.link_type === "POST" ? item.post_id : null,
         category_id: item.link_type === "CATEGORY" ? item.category_id : null,
-        route_key: item.link_type === "ROUTE" ? item.route_key : null,
+        route_key:
+          item.link_type === "ROUTE" ? (item.route_key ?? "PROJECTS") : null,
         custom_target:
           ["EXTERNAL", "EMAIL", "PHONE"].includes(item.link_type)
             ? item.custom_target
