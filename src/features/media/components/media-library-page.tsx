@@ -808,6 +808,7 @@ function StorageOverview({
 }) {
   const summary = state.status === "ready" ? state.data : null;
   const largestFileSize = summary?.largest_files[0]?.size_bytes ?? 0;
+  const hasLocalStorageMetrics = summary?.storage_provider === "local";
 
   return (
     <section
@@ -823,17 +824,24 @@ function StorageOverview({
             Storage overview
           </h2>
         </div>
-        {summary && (
+        {summary && hasLocalStorageMetrics && (
           <p className="text-xs text-muted">
             {formatBytes(summary.filesystem_free_bytes)} free of{" "}
             {formatBytes(summary.filesystem_total_bytes)} on the media volume
           </p>
         )}
       </div>
-      <p className="mt-1 text-xs text-muted">
-        Free space is measured on the filesystem storing media and may differ
-        from a hosting provider’s quota.
-      </p>
+      {summary?.storage_provider === "local" ? (
+        <p className="mt-1 text-xs text-muted">
+          Free space is measured on the filesystem storing media and may differ
+          from a hosting provider’s quota.
+        </p>
+      ) : summary?.storage_provider === "supabase" ? (
+        <p className="mt-1 text-xs text-muted">
+          Supabase quota and exact usage (including video posters) are in the
+          Supabase dashboard.
+        </p>
+      ) : null}
 
       {state.status === "loading" && (
         <p className="mt-4 text-sm text-muted" role="status">
@@ -841,7 +849,7 @@ function StorageOverview({
         </p>
       )}
 
-      {summary?.is_low_storage && (
+      {hasLocalStorageMetrics && summary?.is_low_storage && (
         <div
           className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50"
           role="alert"
@@ -875,7 +883,9 @@ function StorageOverview({
             <div className="flex items-end justify-between gap-4 rounded-xl bg-foreground px-5 py-4 text-background">
               <div>
                 <p className="text-xs font-medium text-background/70">
-                  Total used
+                  {summary.storage_provider === "supabase"
+                    ? "Catalogued file size"
+                    : "Total used"}
                 </p>
                 <p className="mt-1 text-3xl font-semibold tracking-tight">
                   {formatBytes(summary.size_bytes)}

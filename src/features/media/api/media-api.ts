@@ -78,17 +78,29 @@ export type MediaStorageFile = {
   size_bytes: number;
 };
 
-export type MediaStorageSummary = {
+type MediaStorageSummaryFields = {
   item_count: number;
   size_bytes: number;
   categories: MediaStorageCategory[];
   largest_files: MediaStorageFile[];
-  filesystem_total_bytes: number;
-  filesystem_free_bytes: number;
-  filesystem_free_percent: number;
   warning_threshold_free_percent: number;
-  is_low_storage: boolean;
 };
+
+export type MediaStorageSummary =
+  | (MediaStorageSummaryFields & {
+      storage_provider: "local";
+      filesystem_total_bytes: number;
+      filesystem_free_bytes: number;
+      filesystem_free_percent: number;
+      is_low_storage: boolean;
+    })
+  | (MediaStorageSummaryFields & {
+      storage_provider: "supabase";
+      filesystem_total_bytes: null;
+      filesystem_free_bytes: null;
+      filesystem_free_percent: null;
+      is_low_storage: false;
+    });
 
 export type MediaUploadJob =
   | { status: "PROCESSING"; media: null }
@@ -218,25 +230,36 @@ function isMediaStorageFile(value: unknown): value is MediaStorageFile {
 }
 
 function isMediaStorageSummary(value: unknown): value is MediaStorageSummary {
+  const usesLocalStorage =
+    isRecord(value) && value.storage_provider === "local";
+  const usesSupabaseStorage =
+    isRecord(value) && value.storage_provider === "supabase";
   if (
     !isRecord(value) ||
+    (!usesLocalStorage && !usesSupabaseStorage) ||
     typeof value.item_count !== "number" ||
     !Number.isInteger(value.item_count) ||
     value.item_count < 0 ||
     typeof value.size_bytes !== "number" ||
     !Number.isInteger(value.size_bytes) ||
     value.size_bytes < 0 ||
-    typeof value.filesystem_total_bytes !== "number" ||
-    !Number.isInteger(value.filesystem_total_bytes) ||
-    value.filesystem_total_bytes <= 0 ||
-    typeof value.filesystem_free_bytes !== "number" ||
-    !Number.isInteger(value.filesystem_free_bytes) ||
-    value.filesystem_free_bytes < 0 ||
-    value.filesystem_free_bytes > value.filesystem_total_bytes ||
-    typeof value.filesystem_free_percent !== "number" ||
-    !Number.isFinite(value.filesystem_free_percent) ||
-    value.filesystem_free_percent < 0 ||
-    value.filesystem_free_percent > 100 ||
+    (usesLocalStorage &&
+      (typeof value.filesystem_total_bytes !== "number" ||
+        !Number.isInteger(value.filesystem_total_bytes) ||
+        value.filesystem_total_bytes <= 0 ||
+        typeof value.filesystem_free_bytes !== "number" ||
+        !Number.isInteger(value.filesystem_free_bytes) ||
+        value.filesystem_free_bytes < 0 ||
+        value.filesystem_free_bytes > value.filesystem_total_bytes ||
+        typeof value.filesystem_free_percent !== "number" ||
+        !Number.isFinite(value.filesystem_free_percent) ||
+        value.filesystem_free_percent < 0 ||
+        value.filesystem_free_percent > 100)) ||
+    (usesSupabaseStorage &&
+      (value.filesystem_total_bytes !== null ||
+        value.filesystem_free_bytes !== null ||
+        value.filesystem_free_percent !== null ||
+        value.is_low_storage !== false)) ||
     typeof value.warning_threshold_free_percent !== "number" ||
     !Number.isInteger(value.warning_threshold_free_percent) ||
     value.warning_threshold_free_percent < 1 ||

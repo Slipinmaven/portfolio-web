@@ -81,8 +81,11 @@ npm run build
 npm run start
 ```
 
-The production build fetches public API data while prerendering pages, so the
-API and its required data must be available when running `npm run build`.
+Vercel runs `scripts/wait-for-backend.mjs` before the production build. It polls
+the public site-settings endpoint for up to three minutes so a sleeping backend
+can wake before prerendering starts. Configure `NEXT_PUBLIC_API_BASE_URL` in
+Vercel; the deployment fails with an explicit timeout if the API or database
+does not become ready.
 
 There is currently no frontend test script in `package.json`. UI changes should
 be validated in mobile and desktop browser viewports until automated browser
